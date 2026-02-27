@@ -1,6 +1,5 @@
 package com.example.springcrud.controller;
 
-import com.example.springcrud.model.Doctor;
 import com.example.springcrud.model.Patient;
 import com.example.springcrud.model.Prescription;
 import com.example.springcrud.repository.DoctorRepository;
@@ -8,15 +7,21 @@ import com.example.springcrud.repository.PatientRepository;
 import com.example.springcrud.repository.PrescriptionRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@Controller
+/**
+ * REST Controller for managing Prescriptions.
+ * All endpoints in this class return raw JSON data, 
+ * making them perfect for Postman testing and frontend fetch/axios calls.
+ */
+@RestController // Replaces @Controller + @ResponseBody
 @RequestMapping("/doctor/rx") 
 public class PrescriptionController {
 
@@ -24,145 +29,148 @@ public class PrescriptionController {
     @Autowired private PatientRepository patientRepository;
     @Autowired private DoctorRepository doctorRepository;
 
-    // 1. Show the "Create Prescription" Form
-    @GetMapping("/createprescription/{patientId}")
-    public String createPrescriptionForm(@PathVariable String patientId, Model model, HttpSession session) {
-        String docId = (String) session.getAttribute("loggedInDoctorId");
-        if (docId == null) return "redirect:/login";
+    // ==========================================================================================
+    // CORE CRUD APIs
+    // ==========================================================================================
 
-        Optional<Patient> patient = patientRepository.findById(patientId);
-        Optional<Doctor> doctor = doctorRepository.findById(docId);
-
-        if (patient.isPresent() && doctor.isPresent()) {
-            Prescription rx = new Prescription();
-            rx.setPatientId(patient.get().getId()); 
-            rx.setDoctorId(doctor.get().getDoctorId());
-            rx.setDoctorName(doctor.get().getName());
-
-            model.addAttribute("prescription", rx);
-            model.addAttribute("patient", patient.get());
-            
-            return "doctor/prescription_form"; 
-        }
-        return "redirect:/doctor/docdashboard";
-    }
-
-    // 2. Save the Prescription to Database
-    @PostMapping("/save")
-    public String savePrescription(@ModelAttribute Prescription prescription, HttpSession session) {
-        
-        // --- UPDATE 1: Security Check ---
-        if (session.getAttribute("loggedInDoctorId") == null) {
-            return "redirect:/login";
-        }
-
-        // Generate custom RX-XXX ID 
-        if (prescription.getPrescriptionId() == null || prescription.getPrescriptionId().isEmpty()) {
-            long count = prescriptionRepository.count();
-            prescription.setPrescriptionId(String.format("RX-%03d", count + 1));
-        }
-        
-        // Save to MongoDB
-        prescriptionRepository.save(prescription);
-        
-        // --- UPDATE 2: Redirect back to the Patient details page to prevent template errors ---
-        return "redirect:/doctor/view/" + prescription.getPatientId();
-    }
-
-    // 3. View Prescription History for a Patient
-    @GetMapping("/history/{patientId}")
-    public String viewHistory(@PathVariable String patientId, Model model, HttpSession session) {
-        if (session.getAttribute("loggedInDoctorId") == null) return "redirect:/login";
-
-        Optional<Patient> patient = patientRepository.findById(patientId);
-        List<Prescription> history = prescriptionRepository.findByPatientId(patientId);
-
-        if (patient.isPresent()) {
-            model.addAttribute("patient", patient.get());
-            model.addAttribute("prescriptions", history);
-            
-            // NOTE: You will need to create prescription_history.html to use this specific page!
-            return "doctor/prescription_history"; 
-        }
-        return "redirect:/doctor/docdashboard";
-    }
-
-    // ==========================================
-    // FOR POSTMAN JSON TESTING ONLY
-    // ==========================================
-    @PostMapping("/api/save")
-    @ResponseBody // Returns raw JSON instead of trying to load an HTML page
+    /**
+     * PURPOSE: Creates and saves a new prescription to the database.
+     * URL:     POST http://localhost:8080/doctor/rx/api/create
+     * INPUT:   JSON body containing prescription details (patientId, doctorId, medicines, etc.)
+     * OUTPUT:  The newly created Prescription object as JSON (including the auto-generated ID).
+     */
+    @PostMapping("/api/create")
     public Prescription saveViaPostman(@RequestBody Prescription prescription) {
-        
-        // Generate custom RX-XXX ID
+        // Auto-generate a prescription ID if one isn't provided
         if (prescription.getPrescriptionId() == null || prescription.getPrescriptionId().isEmpty()) {
             long count = prescriptionRepository.count();
             prescription.setPrescriptionId(String.format("RX-%03d", count + 1));
         }
-        
-        // Save and return the saved object directly to Postman
         return prescriptionRepository.save(prescription);
     }
 
-    // GET endpoint to view prescriptions in Postman
+    /**
+     * PURPOSE: Retrieves the entire prescription history for a specific patient.
+     * URL:     GET http://localhost:8080/doctor/rx/api/history/{patientId}
+     * INPUT:   patientId as a Path Variable in the URL.
+     * OUTPUT:  A JSON array (List) of all Prescription objects linked to that patient.
+     */
     @GetMapping("/api/history/{patientId}")
-    @ResponseBody 
     public List<Prescription> getPrescriptionsViaPostman(@PathVariable String patientId) {
-        // Fetch the list of prescriptions for this specific patient from the database
         return prescriptionRepository.findByPatientId(patientId);
     }
 
-    @GetMapping("/api/details/{prescriptionId}")
-    @ResponseBody // This forces Spring to return raw JSON instead of HTML
+    /**
+     * PURPOSE: Fetches the details of one specific prescription.
+     * URL:     GET http://localhost:8080/doctor/rx/api/view/{prescriptionId}
+     * INPUT:   prescriptionId as a Path Variable in the URL.
+     * OUTPUT:  A single Prescription JSON object, or a "Not found" message.
+     */
+    @GetMapping("/api/view/{prescriptionId}")
     public Object getPrescriptionViaPostman(@PathVariable String prescriptionId) {
-        
         Optional<Prescription> rxOpt = prescriptionRepository.findByPrescriptionId(prescriptionId);
-        
         if (rxOpt.isPresent()) {
-            return rxOpt.get(); // Returns the JSON data
+            return rxOpt.get(); 
         } else {
             return "Prescription not found!"; 
         }
     }
 
-    // ==========================================
-    // VIEW SINGLE PRESCRIPTION BY RX-ID
-    // ==========================================
-    @GetMapping("/details/{prescriptionId}")
-    public String viewPrescriptionDetails(@PathVariable String prescriptionId, Model model, HttpSession session) {
-        // Security check: Make sure someone is logged in (Doctor or Patient)
-        if (session.getAttribute("loggedInDoctorId") == null && session.getAttribute("loggedInPatientId") == null) {
-            return "redirect:/api/auth/login";
-        }
-
-        // Search for the prescription by its RX-000 ID
-        Optional<Prescription> rxOpt = prescriptionRepository.findByPrescriptionId(prescriptionId);
-        
-        if (rxOpt.isPresent()) {
-            Prescription rx = rxOpt.get();
-            model.addAttribute("prescription", rx);
-            
-            // Fetch the patient details to show on the prescription pad
-            Optional<Patient> patientOpt = patientRepository.findById(rx.getPatientId());
-            if (patientOpt.isPresent()) {
-                model.addAttribute("patient", patientOpt.get());
-            }
-            
-            return "doctor/prescription_detail"; 
-        }
-        
-        // If the ID is wrong or doesn't exist, send them back
-        return "redirect:/login"; 
+    /**
+     * PURPOSE: Fetches every single prescription stored in the database.
+     * URL:     GET http://localhost:8080/doctor/rx/api/all
+     * INPUT:   None.
+     * OUTPUT:  A JSON array (List) containing all prescriptions.
+     */
+    @GetMapping("/api/all")
+    public List<Prescription> getAllPrescriptionsViaPostman() {
+        return prescriptionRepository.findAll();
     }
 
+    /**
+     * PURPOSE: Retrieves all prescriptions written by a specific doctor.
+     * URL:     GET http://localhost:8080/doctor/rx/api/doctor/{doctorId}
+     * INPUT:   doctorId as a Path Variable in the URL.
+     * OUTPUT:  A JSON array (List) of Prescription objects issued by that doctor.
+     */
+    @GetMapping("/api/doctor/{doctorId}")
+    public List<Prescription> getPrescriptionsByDoctorViaPostman(@PathVariable String doctorId) {
+        return prescriptionRepository.findByDoctorId(doctorId);
+    }
 
-    // ==========================================
-    // (GET ALL)
-    // ==========================================
-    @GetMapping("/api/all")
-    @ResponseBody 
-    public List<Prescription> getAllPrescriptionsViaPostman() {
-        // Fetches every single prescription from the MongoDB collection
-        return prescriptionRepository.findAll();
+    // ==========================================================================================
+    // ANALYTICS & SEARCH APIS
+    // ==========================================================================================
+
+    /**
+     * PURPOSE: Generates a list of all medicines a specific doctor frequently prescribes.
+     * URL:     GET http://localhost:8080/doctor/rx/api/analytics/doctor-medicines/{doctorId}
+     * INPUT:   doctorId as a Path Variable in the URL.
+     * OUTPUT:  A JSON array of strings (medicine names/lists).
+     */
+    @GetMapping("/api/analytics/doctor-medicines/{doctorId}")
+    public List<String> getMedicinesPrescribedByDoctor(@PathVariable String doctorId) {
+        List<Prescription> doctorPrescriptions = prescriptionRepository.findByDoctorId(doctorId);
+        
+        return doctorPrescriptions.stream()
+                .map(Prescription::getMedicineList)
+                .filter(meds -> meds != null && !meds.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * PURPOSE: Finds all patients who have been prescribed a specific medicine (by its name).
+     * URL:     GET http://localhost:8080/doctor/rx/api/analytics/patients-by-medicine-name?medicineName=Paracetamol
+     * INPUT:   medicineName as a Query Parameter (e.g., ?medicineName=Aspirin).
+     * OUTPUT:  A JSON array of Patient objects matching the criteria.
+     */
+    @GetMapping("/api/analytics/patients-by-medicine-name")
+    public ResponseEntity<?> getPatientsByMedicineName(@RequestParam String medicineName) {
+        try {
+            List<Prescription> matchingRx = prescriptionRepository.findByMedicineListContainingIgnoreCase(medicineName);
+            
+            Set<String> uniquePatientIds = matchingRx.stream()
+                    .filter(rx -> rx.getPatientId() != null && !rx.getPatientId().trim().isEmpty()) 
+                    .map(Prescription::getPatientId)
+                    .collect(Collectors.toSet());
+            
+            List<Patient> patients = new ArrayList<>();
+            for (String patId : uniquePatientIds) {
+                patientRepository.findByPatientId(patId).ifPresent(patients::add); 
+            }
+            
+            return ResponseEntity.ok(patients);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * PURPOSE: Finds all patients who have been prescribed a specific medicine (by its internal ID).
+     * URL:     GET http://localhost:8080/doctor/rx/api/analytics/patients-by-med-id?medId=MED-001
+     * INPUT:   medId as a Query Parameter (e.g., ?medId=MED-005).
+     * OUTPUT:  A JSON array of Patient objects matching the criteria.
+     */
+    @GetMapping("/api/analytics/patients-by-med-id")
+    public ResponseEntity<?> getPatientsByMedicineId(@RequestParam String medId) {
+        try {
+            List<Prescription> matchingRx = prescriptionRepository.findByMedicineIdsContaining(medId);
+            
+            Set<String> uniquePatientIds = matchingRx.stream()
+                    .filter(rx -> rx.getPatientId() != null && !rx.getPatientId().trim().isEmpty()) 
+                    .map(Prescription::getPatientId)
+                    .collect(Collectors.toSet());
+            
+            List<Patient> patients = new ArrayList<>();
+            for (String patId : uniquePatientIds) {
+                patientRepository.findByPatientId(patId).ifPresent(patients::add);
+            }
+            
+            return ResponseEntity.ok(patients);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Server Error: " + e.getMessage());
+        }
     }
 }

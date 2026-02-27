@@ -1,8 +1,10 @@
 package com.example.springcrud.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDate;
+import java.util.List;
 
 @Document(collection = "prescriptions")
 public class Prescription {
@@ -16,10 +18,16 @@ public class Prescription {
     private String doctorName; 
     
     private String diagnosis; // The doctor's notes
-    private String medicineList; // Stores medicines (e.g., "Paracetamol 500mg\nAspirin")
+    private String medicineList; // Stores text for the printed pad
+    
+    // Stores strict database IDs for analytics (e.g., ["MED-001", "MED-005"])
+    private List<String> medicineIds; 
+    
     private String testList;     // Stores tests (e.g., "Blood Test\nX-Ray")
     
-    private LocalDate date; // Date of prescription
+    // ONLY ONE date field, with the annotation applied!
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate date; 
 
     // Constructors
     public Prescription() {
@@ -30,7 +38,7 @@ public class Prescription {
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-     public String getPrescriptionId() { return prescriptionId; }
+    public String getPrescriptionId() { return prescriptionId; }
     public void setPrescriptionId(String prescriptionId) { this.prescriptionId = prescriptionId; }
 
     public String getPatientId() { return patientId; }
@@ -53,5 +61,7 @@ public class Prescription {
 
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
-    
+
+    public List<String> getMedicineIds() { return medicineIds; }
+    public void setMedicineIds(List<String> medicineIds) { this.medicineIds = medicineIds; }
 }

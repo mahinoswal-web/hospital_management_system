@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/doctors")
@@ -19,110 +18,48 @@ public class DoctorController {
         private DoctorRepository doctorRepository;
 
         // ================= CREATE =================
+        // POST
+        // http://localhost:8080/api/doctors
         @PostMapping
         public ResponseEntity<Doctor> createDoctor(@RequestBody Doctor doctor) {
                 Doctor savedDoctor = doctorRepository.save(doctor);
                 return new ResponseEntity<>(savedDoctor, HttpStatus.CREATED);
         }
 
-        // ================= READ WITH FILTERS =================
+        // ================= READ ALL =================
+        // get all doctors
+        // GET
+        // http://localhost:8080/api/doctors
         @GetMapping
-        public ResponseEntity<List<Doctor>> getAllDoctors(
-                        @RequestParam(required = false) String name,
-                        @RequestParam(required = false) String specialization,
-                        @RequestParam(required = false) Integer minExperience,
-                        @RequestParam(required = false) Integer maxExperience,
-                        @RequestParam(required = false) String qualification,
-                        @RequestParam(required = false) String gender,
-                        @RequestParam(required = false) String phone,
-                        @RequestParam(required = false) String hospitalName,
-                        @RequestParam(required = false) Double minFee,
-                        @RequestParam(required = false) Double maxFee,
-                        @RequestParam(required = false) Double minRating,
-                        @RequestParam(required = false) String availability,
-                        @RequestParam(required = false) String address) {
-
+        public ResponseEntity<List<Doctor>> getAllDoctors() {
                 List<Doctor> doctors = doctorRepository.findAll();
-
-                List<Doctor> filteredDoctors = doctors.stream()
-
-                                .filter(d -> name == null ||
-                                                (d.getName() != null &&
-                                                                d.getName().toLowerCase().contains(name.toLowerCase())))
-
-                                .filter(d -> specialization == null ||
-                                                (d.getSpecialization() != null &&
-                                                                d.getSpecialization().equalsIgnoreCase(specialization)))
-
-                                .filter(d -> minExperience == null ||
-                                                (d.getExperience() != null &&
-                                                                d.getExperience() >= minExperience))
-
-                                .filter(d -> maxExperience == null ||
-                                                (d.getExperience() != null &&
-                                                                d.getExperience() <= maxExperience))
-
-                                .filter(d -> qualification == null ||
-                                                (d.getQualification() != null &&
-                                                                d.getQualification().stream()
-                                                                                .anyMatch(q -> q.equalsIgnoreCase(
-                                                                                                qualification))))
-
-                                .filter(d -> gender == null ||
-                                                (d.getGender() != null &&
-                                                                d.getGender().equalsIgnoreCase(gender)))
-
-                                .filter(d -> gender == null ||
-                                                (d.getPhone() != null &&
-                                                                d.getPhone().equalsIgnoreCase(phone)))
-
-                                .filter(d -> hospitalName == null ||
-                                                (d.getHospitalName() != null &&
-                                                                d.getHospitalName().equalsIgnoreCase(hospitalName)))
-
-                                .filter(d -> minFee == null ||
-                                                (d.getConsultationFee() != null &&
-                                                                d.getConsultationFee() >= minFee))
-
-                                .filter(d -> maxFee == null ||
-                                                (d.getConsultationFee() != null &&
-                                                                d.getConsultationFee() <= maxFee))
-
-                                .filter(d -> minRating == null ||
-                                                (d.getRating() != null &&
-                                                                d.getRating() >= minRating))
-
-                                .filter(d -> availability == null ||
-                                                (d.getAvailability() != null &&
-                                                                d.getAvailability().equalsIgnoreCase(availability)))
-
-                                .filter(d -> address == null ||
-                                                (d.getAddress() != null &&
-                                                                d.getAddress().toLowerCase()
-                                                                                .contains(address.toLowerCase())))
-
-                                .collect(Collectors.toList());
-
-                return new ResponseEntity<>(filteredDoctors, HttpStatus.OK);
+                return new ResponseEntity<>(doctors, HttpStatus.OK);
         }
 
         // ================= READ BY ID =================
-        @GetMapping("/{doctorId}")
+        // get by selected id
+        // GET
+        // http://localhost:8080/api/doctors/DOC-102
+        
+        @GetMapping("/{doctorId}") // <-- TYPO FIXED HERE! Changed } to )
         public ResponseEntity<Doctor> getDoctorById(@PathVariable String doctorId) {
-                Optional<Doctor> doctor = doctorRepository.findById(doctorId);
+                // Using findFirstByDoctorId to bypass duplicate errors
+                Optional<Doctor> doctor = doctorRepository.findFirstByDoctorId(doctorId);
                 return doctor.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         }
 
         // ================= UPDATE =================
+        // update doctor
+        // PUT
+        // http://localhost:8080/api/doctors/DOC-101
         @PutMapping("/{doctorId}")
         public ResponseEntity<Doctor> updateDoctor(
                         @PathVariable String doctorId,
                         @RequestBody Doctor doctor) {
 
-                return doctorRepository.findById(doctorId)
+                return doctorRepository.findFirstByDoctorId(doctorId)
                                 .map(existing -> {
-
                                         existing.setName(doctor.getName());
                                         existing.setSpecialization(doctor.getSpecialization());
                                         existing.setExperience(doctor.getExperience());
@@ -143,11 +80,17 @@ public class DoctorController {
         }
 
         // ================= DELETE =================
+        // DEL
+        // http://localhost:8080/api/doctors/DOC-102
         @DeleteMapping("/{doctorId}")
         public ResponseEntity<HttpStatus> deleteDoctor(@PathVariable String doctorId) {
                 try {
-                        doctorRepository.deleteById(doctorId);
-                        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                        Optional<Doctor> doctor = doctorRepository.findFirstByDoctorId(doctorId);
+                        if (doctor.isPresent()) {
+                                doctorRepository.delete(doctor.get());
+                                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                        }
+                        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 } catch (Exception e) {
                         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
                 }

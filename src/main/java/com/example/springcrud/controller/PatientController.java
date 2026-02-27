@@ -19,14 +19,14 @@ public class PatientController {
     @Autowired
     private PatientRepository patientRepository;
 
-    // CREATE
+    // ================= CREATE =================
     @PostMapping
     public ResponseEntity<Patient> createPatient(@RequestBody Patient patient) {
         Patient savedPatient = patientRepository.save(patient);
         return new ResponseEntity<>(savedPatient, HttpStatus.CREATED);
     }
 
-    // READ - Get all patients (Keeping your existing filter logic)
+    // ================= READ ALL (With Filters) =================
     @GetMapping
     public ResponseEntity<List<Patient>> getAllPatients(
             @RequestParam(required = false) String patientId,
@@ -55,36 +55,32 @@ public class PatientController {
         return new ResponseEntity<>(filteredPatients, HttpStatus.OK);
     }
 
-    // READ - Get patient by Mongo _id
-    @GetMapping("/{id}")
-    public ResponseEntity<Patient> getPatientById(@PathVariable String id) {
-        Optional<Patient> patient = patientRepository.findById(id);
+    // ================= READ BY PATIENT ID =================
+    @GetMapping("/{patientId}")
+    public ResponseEntity<Patient> getPatientById(@PathVariable String patientId) {
+        Optional<Patient> patient = patientRepository.findFirstByPatientId(patientId);
         return patient.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // FIX 4: Return List<Patient> here
+    // ================= READ BY DOCTOR ID =================
     @GetMapping("/byDoctor/{doctorId}")
     public ResponseEntity<List<Patient>> getPatientsByDoctorId(@PathVariable String doctorId) {
         List<Patient> patients = patientRepository.findByDoctorId(doctorId);
         if (patients.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT); // or OK with empty list
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT); 
         }
         return new ResponseEntity<>(patients, HttpStatus.OK);
     }
 
-    // UPDATE
-    @PutMapping("/{id}")
+    // ================= UPDATE =================
+    @PutMapping("/{patientId}")
     public ResponseEntity<Patient> updatePatient(
-            @PathVariable String id,
+            @PathVariable String patientId,
             @RequestBody Patient patient) {
 
-        Optional<Patient> patientOptional = patientRepository.findById(id);
-
-        if (patientOptional.isPresent()) {
-            Patient patientToUpdate = patientOptional.get();
-
-            patientToUpdate.setPatientId(patient.getPatientId());
+        return patientRepository.findFirstByPatientId(patientId).map(patientToUpdate -> {
+            
             patientToUpdate.setFullName(patient.getFullName());
             patientToUpdate.setDateOfBirth(patient.getDateOfBirth());
             patientToUpdate.setGender(patient.getGender());
@@ -98,24 +94,25 @@ public class PatientController {
             patientToUpdate.setCurrentMedications(patient.getCurrentMedications());
             patientToUpdate.setHeight(patient.getHeight());
             patientToUpdate.setWeight(patient.getWeight());
-            
-            // FIX 5: Don't forget to update the doctor reference!
             patientToUpdate.setDoctorId(patient.getDoctorId());
+            patientToUpdate.setCondition(patient.getCondition());
 
             Patient updatedPatient = patientRepository.save(patientToUpdate);
             return new ResponseEntity<>(updatedPatient, HttpStatus.OK);
-
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+            
+        }).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // DELETE
-    @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deletePatient(@PathVariable String id) {
+    // ================= DELETE =================
+    @DeleteMapping("/{patientId}")
+    public ResponseEntity<HttpStatus> deletePatient(@PathVariable String patientId) {
         try {
-            patientRepository.deleteById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            Optional<Patient> patient = patientRepository.findFirstByPatientId(patientId);
+            if (patient.isPresent()) {
+                patientRepository.delete(patient.get());
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

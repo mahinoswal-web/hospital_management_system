@@ -56,19 +56,21 @@ public class DoctorDashboardController {
     }
 
     // ==========================================
-    // 2. DIAGNOSE / VIEW PATIENT DETAILS (UPDATED)
+    // 2. VIEW PATIENT DETAILS (Meaningful URL)
+    // Example: http://localhost:8080/doctor/patient/PAT-001
     // ==========================================
-   @GetMapping("/view/{id}")
-    public String viewPatient(@PathVariable String id, Model model, HttpSession session) {
+    @GetMapping("/patient/{patientId}")
+    public String viewPatient(@PathVariable String patientId, Model model, HttpSession session) {
         if (session.getAttribute("loggedInDoctorId") == null) return "redirect:/login";
         
-        Optional<Patient> patientOpt = patientRepository.findById(id);
+        // Search using your custom PAT-XXX ID instead of the MongoDB internal ID
+        Optional<Patient> patientOpt = patientRepository.findFirstByPatientId(patientId);
+        
         if (patientOpt.isPresent()) {
             model.addAttribute("patient", patientOpt.get());
-            
-            // CHANGE THIS BACK TO:
             return "doctor/patient-details"; 
         }
+        
         return "redirect:/doctor/docdashboard";
     }
 
@@ -83,19 +85,17 @@ public class DoctorDashboardController {
     }
 
     // ==========================================
-    // 4. EDIT PATIENT (Reuses Add Form)
+    // 4. EDIT PATIENT (Now uses PAT-XXX)
     // ==========================================
-    @GetMapping("/edit-patient/{id}")
-    public String showEditForm(@PathVariable String id, Model model, HttpSession session) {
+    @GetMapping("/edit-patient/{patientId}")
+    public String showEditForm(@PathVariable String patientId, Model model, HttpSession session) {
         if (session.getAttribute("loggedInDoctorId") == null) return "redirect:/login";
         
-        Optional<Patient> patient = patientRepository.findById(id);
-        
+        Optional<Patient> patient = patientRepository.findFirstByPatientId(patientId);
         if (patient.isPresent()) {
             model.addAttribute("patient", patient.get());
             return "doctor/add-patient"; 
         }
-        
         return "redirect:/doctor/docdashboard";
     }
 
@@ -133,13 +133,15 @@ public class DoctorDashboardController {
     }
 
     // ==========================================
-    // 6. DELETE PATIENT
+    // 6. DELETE PATIENT (Now uses PAT-XXX)
     // ==========================================
-    @GetMapping("/delete-patient/{id}")
-    public String deletePatient(@PathVariable String id, HttpSession session) {
+    @GetMapping("/delete-patient/{patientId}")
+    public String deletePatient(@PathVariable String patientId, HttpSession session) {
         if (session.getAttribute("loggedInDoctorId") == null) return "redirect:/login";
         
-        patientRepository.deleteById(id);
+        Optional<Patient> patient = patientRepository.findFirstByPatientId(patientId);
+        patient.ifPresent(p -> patientRepository.delete(p));
+        
         return "redirect:/doctor/docdashboard";
     }
 
@@ -163,14 +165,15 @@ public class DoctorDashboardController {
 
 
     // ==========================================
-    // 8. PRINT PRESCRIPTION
+    // 8. PRINT PRESCRIPTION (Now uses PAT-XXX)
     // ==========================================
-    @GetMapping("/print-prescription/{id}")
-    public String printPrescription(@PathVariable String id, Model model, HttpSession session) {
+    @GetMapping("/print-prescription/{patientId}")
+    public String printPrescription(@PathVariable String patientId, Model model, HttpSession session) {
         String internalId = (String) session.getAttribute("loggedInDoctorId");
         if (internalId == null) return "redirect:/login";
 
-        Optional<Patient> patientOpt = patientRepository.findById(id);
+        // Find by custom ID
+        Optional<Patient> patientOpt = patientRepository.findFirstByPatientId(patientId);
         Optional<Doctor> docOpt = doctorRepository.findById(internalId);
 
         if (patientOpt.isPresent() && docOpt.isPresent()) {
@@ -178,7 +181,6 @@ public class DoctorDashboardController {
             model.addAttribute("doctor", docOpt.get());
             return "doctor/prescription";
         }
-        
         return "redirect:/doctor/docdashboard";
     }
 
@@ -216,5 +218,24 @@ public class DoctorDashboardController {
             return "redirect:/doctor/view/" + patientId;
         }
         return "redirect:/doctor/docdashboard";
+    }
+
+    // ==========================================
+    // 11. MEDICINE INVENTORY
+    // ==========================================
+    @GetMapping("/inventory")
+    public String viewDoctorInventory(Model model, HttpSession session) {
+        String internalId = (String) session.getAttribute("loggedInDoctorId");
+        if (internalId == null) {
+            return "redirect:/login";
+        }
+        
+        // Pass BOTH variable names to the frontend so it cannot fail
+        doctorRepository.findById(internalId).ifPresent(doc -> {
+            model.addAttribute("doctorId", doc.getDoctorId());
+            model.addAttribute("displayId", doc.getDoctorId()); 
+        });
+        
+        return "doctor/doctor-inventory"; 
     }
 }

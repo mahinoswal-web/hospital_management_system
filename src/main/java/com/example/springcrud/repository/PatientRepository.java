@@ -13,14 +13,20 @@ public interface PatientRepository extends MongoRepository<Patient, String> {
     Optional<Patient> findByPhone(String phone);
 
     // Used to filter patients on the Doctor Dashboard
-    // This must match the variable name 'doctorId' in your Patient model
     List<Patient> findByDoctorId(String doctorId); 
 
     // Custom search method: Finds patients for a specific doctor by Name OR Patient ID
-List<Patient> findByDoctorIdAndFullNameContainingIgnoreCaseOrDoctorIdAndPatientIdContainingIgnoreCase(
-    String doctorId1, String name, 
-    String doctorId2, String patientId
-);
+    List<Patient> findByDoctorIdAndFullNameContainingIgnoreCaseOrDoctorIdAndPatientIdContainingIgnoreCase(
+        String doctorId1, String name, 
+        String doctorId2, String patientId
+    );
 
+    // Bypasses the MongoDB _id and searches safely by your custom PAT-XXX ID
+    Optional<Patient> findFirstByPatientId(String patientId);
+
+    // ==========================================
+    // ADDED TO FIX PRESCRIPTION CONTROLLER!
+    // ==========================================
+    Optional<Patient> findByPatientId(String patientId);
 
 }

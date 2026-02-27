@@ -7,13 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class PageController {
 
     // 1. Handle the Login Page
-    @GetMapping("/login")
+   @GetMapping("/login")
     public String showLoginPage() {
-        // TRY THIS FIRST: Assumes file is at src/main/resources/templates/login.html
+        // Just "login" without any folder names!
         return "login"; 
     }
-
-    // 2. Redirect root URL (localhost:8080) to Login
+    // 2. Redirect root URL to Login
     @GetMapping("/")
     public String home() {
         return "redirect:/login";

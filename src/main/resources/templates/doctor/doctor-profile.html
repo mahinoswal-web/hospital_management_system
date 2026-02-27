@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Profile - MediPortal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #f4f6f9; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .profile-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px 0;
+            border-radius: 10px 10px 0 0;
+        }
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border: 4px solid white;
+            border-radius: 50%;
+            margin-top: -60px;
+            background-color: #fff;
+        }
+        .profile-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/doctor/docdashboard.html"><i class="bi bi-hospital me-2"></i>MediPortal</a>
+        <div class="d-flex">
+            <a href="/doctor/docdashboard.html" class="btn btn-outline-light btn-sm"><i class="bi bi-house-door"></i> Dashboard</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="profile-card">
+                <div class="profile-header text-center">
+                    <h2 class="fw-bold mb-0">My Profile</h2>
+                    <p class="text-white-50">Manage your clinical details</p>
+                </div>
+
+                <div class="text-center">
+                    <img src="https://ui-avatars.com/api/?name=Dr+Doctor&background=e9ecef&color=1e3c72&size=150" id="profilePic" class="profile-img shadow-sm" alt="Profile">
+                </div>
+
+                <div class="p-4 p-md-5">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold text-dark"><i class="bi bi-person-badge text-primary me-2"></i> Personal Details</h5>
+                        <button class="btn btn-sm btn-outline-primary" id="editBtn">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </button>
+                    </div>
+
+                    <form id="profileForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Full Name</label>
+                                <input type="text" id="docName" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label small fw-bold text-muted">Doctor ID</label>
+                                <input type="text" id="docId" class="form-control bg-light" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Specialization</label>
+                                <input type="text" id="docSpecialization" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label small fw-bold text-muted">Qualifications</label>
+                                <input type="text" id="docQualification" class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted">Associated Hospital / Clinic</label>
+                            <input type="text" id="docHospital" class="form-control" readonly>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="fw-bold text-dark mb-4"><i class="bi bi-telephone text-primary me-2"></i> Contact Information</h5>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Email Address</label>
+                                <input type="email" id="docEmail" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label small fw-bold text-muted">Phone Number</label>
+                                <input type="text" id="docPhone" class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        <div class="d-grid d-none" id="saveActionDiv">
+                            <button type="submit" class="btn btn-success btn-lg shadow-sm" id="saveBtn">
+                                <i class="bi bi-check2-circle me-2"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async function() {
+        
+        // 1. Determine which doctor's profile to load.
+        // For testing, you can pass ?doctorId=DOC-105 in the URL.
+        // Eventually, your backend should know this from the login session!
+        const urlParams = new URLSearchParams(window.location.search);
+        let doctorId = urlParams.get('doctorId');
+
+        if (!doctorId) {
+            // Fallback for testing if you just open the page
+            doctorId = prompt("Enter a Doctor ID to view (e.g., DOC-105):"); 
+            if(!doctorId) return;
+        }
+
+        try {
+            // 2. Fetch the data from your Doctor Controller API
+            const response = await fetch(`/api/doctor/${doctorId}`); // Replace with your actual endpoint!
+            
+            if (response.ok) {
+                const docData = await response.json();
+                
+                // 3. Populate the HTML fields
+                document.getElementById('docName').value = docData.name || '';
+                document.getElementById('docId').value = docData.doctorId || doctorId;
+                document.getElementById('docSpecialization').value = docData.specialization || '';
+                document.getElementById('docQualification').value = docData.qualification || '';
+                document.getElementById('docHospital').value = docData.hospitalName || '';
+                document.getElementById('docEmail').value = docData.email || '';
+                document.getElementById('docPhone').value = docData.phone || '';
+
+                // Update Profile Pic Initials dynamically
+                if(docData.name) {
+                    let initialsName = docData.name.replace("Dr. ", "").replace(" ", "+");
+                    document.getElementById('profilePic').src = `https://ui-avatars.com/api/?name=${initialsName}&background=e9ecef&color=1e3c72&size=150`;
+                }
+                
+            } else {
+                alert("Failed to load profile. Are you sure this Doctor ID exists in the database?");
+            }
+        } catch (error) {
+            console.error("Error fetching doctor:", error);
+            alert("Error connecting to the backend API.");
+        }
+
+        // --- Edit Mode Logic ---
+        const editBtn = document.getElementById('editBtn');
+        const saveActionDiv = document.getElementById('saveActionDiv');
+        const inputs = document.querySelectorAll('#profileForm input:not(#docId)'); // Can't edit ID
+
+        editBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Toggle Readonly state
+            let isReadonly = inputs[0].hasAttribute('readonly');
+            
+            if(isReadonly) {
+                inputs.forEach(input => {
+                    input.removeAttribute('readonly');
+                    input.classList.remove('bg-light');
+                });
+                editBtn.innerHTML = '<i class="bi bi-x-circle"></i> Cancel';
+                editBtn.classList.replace('btn-outline-primary', 'btn-outline-danger');
+                saveActionDiv.classList.remove('d-none');
+            } else {
+                // Cancel was clicked, revert back
+                inputs.forEach(input => input.setAttribute('readonly', true));
+                editBtn.innerHTML = '<i class="bi bi-pencil-square"></i> Edit';
+                editBtn.classList.replace('btn-outline-danger', 'btn-outline-primary');
+                saveActionDiv.classList.add('d-none');
+                // You might want to re-fetch the original data here to undo unsaved typing
+            }
+        });
+
+        // --- Save Changes Logic ---
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('saveBtn');
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+            
+            const updatedData = {
+                doctorId: document.getElementById('docId').value,
+                name: document.getElementById('docName').value,
+                specialization: document.getElementById('docSpecialization').value,
+                qualification: document.getElementById('docQualification').value,
+                hospitalName: document.getElementById('docHospital').value,
+                email: document.getElementById('docEmail').value,
+                phone: document.getElementById('docPhone').value
+            };
+
+            // You will need an @PutMapping in your DoctorController to handle this!
+            /*
+            const updateResponse = await fetch(`/api/doctor/update/${updatedData.doctorId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+            */
+            
+            alert("This is where it sends the updated JSON to your backend. We need to create the Update API next!");
+            submitBtn.innerHTML = '<i class="bi bi-check2-circle me-2"></i> Save Changes';
+        });
+
+    });
+</script>
+
+</body>
+</html>

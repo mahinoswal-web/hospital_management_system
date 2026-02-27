@@ -8,3 +8,4 @@ import com.example.springcrud.model.Medicines;
 @Repository
 public interface MedicinesRepository extends MongoRepository<Medicines, String> {
 }
+

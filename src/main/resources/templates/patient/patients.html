@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Patients - Admin Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; overflow-x: hidden; }
+        #sidebar { min-height: 100vh; background-color: #212529; color: white; }
+        #sidebar .nav-link { color: #adb5bd; margin-bottom: 5px; border-radius: 5px; }
+        #sidebar .nav-link:hover, #sidebar .nav-link.active { background-color: #0d6efd; color: white; }
+        .top-navbar { background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+<div class="d-flex">
+    <div class="d-flex flex-column p-3 text-white" id="sidebar" style="width: 280px;">
+        <a href="/admin/dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <i class="bi bi-hospital fs-4 me-2"></i><span class="fs-4 fw-bold">Clinic Admin</span>
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li><a href="/admin/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+            <li><a href="/admin/doctors" class="nav-link"><i class="bi bi-person-badge me-2"></i> Manage Doctors</a></li>
+            <li><a href="/admin/patients" class="nav-link active"><i class="bi bi-people me-2"></i> Manage Patients</a></li>
+        </ul>
+        <hr>
+        <a href="/login?logout=true" class="nav-link text-danger fw-bold"><i class="bi bi-box-arrow-right me-2"></i> Log Out</a>
+    </div>
+
+    <div class="flex-grow-1">
+        <nav class="navbar top-navbar p-3 mb-4">
+            <div class="container-fluid d-flex justify-content-between">
+                <span class="navbar-brand mb-0 h1">Patient Registry</span>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-dark">All Registered Patients</h4>
+                <button class="btn btn-success"><i class="bi bi-plus-circle"></i> Register Patient</button>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Patient ID</th>
+                                <th>Full Name</th>
+                                <th>Gender</th>
+                                <th>Blood Group</th>
+                                <th>Primary Doctor ID</th>
+                                <th>Condition</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientsTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center py-4">Loading patient records...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Fetch Patients from the REST API on load
+    document.addEventListener("DOMContentLoaded", function() {
+        fetch('/api/patients')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('patientsTableBody');
+                tbody.innerHTML = ''; // Clear loading text
+                
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No patients found.</td></tr>';
+                    return;
+                }
+
+                data.forEach(pat => {
+                    // Note: matching the fields from your PatientController update method
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="align-middle fw-bold text-success">${pat.patientId || 'N/A'}</td>
+                        <td class="align-middle">${pat.fullName || 'N/A'}</td>
+                        <td class="align-middle">${pat.gender || 'N/A'}</td>
+                        <td class="align-middle">${pat.bloodGroup || '-'}</td>
+                        <td class="align-middle">${pat.doctorId || 'Unassigned'}</td>
+                        <td class="align-middle">${pat.condition || 'N/A'}</td>
+                        <td class="text-center align-middle">
+                            <button class="btn btn-sm btn-outline-info me-1" onclick="alert('View details logic here')">View</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePatient('${pat.patientId}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching patients:', error);
+                document.getElementById('patientsTableBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading data.</td></tr>';
+            });
+    });
+
+    // Placeholder for Delete Function mapping to your @DeleteMapping API
+    function deletePatient(patientId) {
+        if(confirm(`Are you sure you want to delete patient ${patientId}?`)) {
+            fetch(`/api/patients/${patientId}`, { method: 'DELETE' })
+                .then(response => {
+                    if(response.ok) {
+                        alert("Patient deleted successfully.");
+                        location.reload(); // Refresh the table
+                    } else {
+                        alert("Failed to delete patient.");
+                    }
+                });
+        }
+    }
+</script>
+</body>
+</html>

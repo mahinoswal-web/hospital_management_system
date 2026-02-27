@@ -20,8 +20,10 @@ public class MedicinesController {
     @Autowired
     private MedicinesRepository medicinesRepository;
 
-    // CREATE
-    @PostMapping
+    // ==========================================
+    // 1. CREATE MEDICINE
+    // ==========================================
+    @PostMapping("/create")
     public ResponseEntity<Medicines> createMedicine(@RequestBody Medicines medicine) {
         try {
             Medicines savedMedicine = medicinesRepository.save(medicine);
@@ -31,13 +33,16 @@ public class MedicinesController {
         }
     }
 
-    // READ - Get all with optional filtering
-    @GetMapping
+    // ==========================================
+    // 2. VIEW ALL MEDICINES (With Optional Search Filters)
+    // ==========================================
+    @GetMapping("/all")
     public ResponseEntity<List<Medicines>> getAllMedicines(
             @RequestParam(required = false) String medId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String companyName,
-            @RequestParam(required = false) String recordStatus
+            @RequestParam(required = false) String recordStatus,
+            @RequestParam(required = false) String doctorId // <--- Added Doctor ID
     ) {
         try {
             List<Medicines> medicines = medicinesRepository.findAll();
@@ -46,12 +51,13 @@ public class MedicinesController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
 
-            // Simple In-Memory Filtering (Production apps should use MongoTemplate queries for efficiency)
+            // Simple In-Memory Filtering 
             List<Medicines> filteredMedicines = medicines.stream()
                     .filter(m -> medId == null || (m.getMedId() != null && m.getMedId().toLowerCase().contains(medId.toLowerCase())))
                     .filter(m -> name == null || (m.getName() != null && m.getName().toLowerCase().contains(name.toLowerCase())))
                     .filter(m -> companyName == null || (m.getCompanyName() != null && m.getCompanyName().toLowerCase().contains(companyName.toLowerCase())))
                     .filter(m -> recordStatus == null || (m.getRecordStatus() != null && m.getRecordStatus().equalsIgnoreCase(recordStatus)))
+                    .filter(m -> doctorId == null || (m.getDoctorId() != null && m.getDoctorId().equals(doctorId))) // <--- Filters by Doctor!
                     .collect(Collectors.toList());
 
             return new ResponseEntity<>(filteredMedicines, HttpStatus.OK);
@@ -60,16 +66,20 @@ public class MedicinesController {
         }
     }
 
-    // READ - Get by ID
-    @GetMapping("/{id}")
+    // ==========================================
+    // 3. VIEW SINGLE MEDICINE BY DATABASE ID
+    // ==========================================
+    @GetMapping("/view/{id}")
     public ResponseEntity<Medicines> getMedicineById(@PathVariable("id") String id) {
         Optional<Medicines> medicine = medicinesRepository.findById(id);
         return medicine.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                        .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // UPDATE
-    @PutMapping("/{id}")
+    // ==========================================
+    // 4. UPDATE MEDICINE
+    // ==========================================
+    @PutMapping("/update/{id}")
     public ResponseEntity<Medicines> updateMedicine(@PathVariable("id") String id, @RequestBody Medicines medicine) {
         Optional<Medicines> medicineData = medicinesRepository.findById(id);
 
@@ -85,16 +95,16 @@ public class MedicinesController {
             _medicine.setExpiryDate(medicine.getExpiryDate());
             _medicine.setDoctorChangeAllowed(medicine.getDoctorChangeAllowed());
             
-            // Add other fields if necessary (frequency, duration, etc.)
-            
             return new ResponseEntity<>(medicinesRepository.save(_medicine), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    // DELETE
-    @DeleteMapping("/{id}")
+    // ==========================================
+    // 5. DELETE MEDICINE
+    // ==========================================
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<HttpStatus> deleteMedicine(@PathVariable("id") String id) {
         try {
             medicinesRepository.deleteById(id);

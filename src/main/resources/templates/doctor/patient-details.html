@@ -1,51 +1,204 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Patient Treatment</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient File - MediPortal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #f0f4f8; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden; 
+        }
+        
+        /* Premium Gradient Sidebar */
+        #sidebar { 
+            min-height: 100vh; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white; 
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+        #sidebar .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 8px; border-radius: 10px; transition: all 0.3s ease; }
+        #sidebar .nav-link:hover { background-color: rgba(255,255,255,0.2); color: white; transform: translateX(5px); }
+
+        /* Card Styling */
+        .glass-card { background: #ffffff; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.05); border-radius: 15px; }
+        .vital-card { border-radius: 12px; background: #f8faff; border: 1px solid #eef2f7; text-align: center; padding: 1rem; }
+        .section-header { font-size: 1.1rem; font-weight: 700; color: #1e3c72; border-bottom: 2px solid #eef2f7; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        
+        /* Patient Header Banner */
+        .patient-banner { background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%); border-radius: 15px; border: 1px solid #e0e6ed; }
+    </style>
 </head>
-<body class="bg-light">
-<div class="container mt-4 mb-5">
-    <div class="d-flex align-items-center mb-4">
-        <a href="/doctor/docdashboard" class="btn btn-outline-secondary me-3"><i class="fas fa-arrow-left"></i> Back</a>
-        <h2 class="mb-0">Patient Diagnosis</h2>
-    </div>
-    <div class="card shadow-sm border-0 mb-4 border-start border-primary border-5">
-        <div class="card-body">
-            <h3 class="text-primary fw-bold" th:text="${patient.fullName}">Patient Name</h3>
-            <p class="text-muted mb-0">ID: <span th:text="${patient.patientId}"></span> | Phone: <span th:text="${patient.phone}"></span></p>
+<body>
+
+<div class="d-flex">
+    <div class="d-flex flex-column p-4" id="sidebar" style="width: 280px; position: fixed; height: 100vh; z-index: 1000;">
+        <a href="/doctor/docdashboard" class="d-flex align-items-center mb-4 text-white text-decoration-none">
+            <div class="bg-white text-primary rounded-circle p-2 me-3 shadow-sm">
+                <i class="bi bi-heart-pulse-fill fs-3"></i>
+            </div>
+            <span class="fs-4 fw-bold">MediPortal</span>
+        </a>
+        <hr class="text-white-50">
+        <ul class="nav nav-pills flex-column mb-auto mt-2">
+            <li><a href="/doctor/docdashboard" class="nav-link px-3 py-2"><i class="bi bi-grid-1x2-fill me-2"></i> Dashboard</a></li>
+            <li><a href="/doctor/inventory" class="nav-link px-3 py-2"><i class="bi bi-capsule me-2"></i> Medicine Inventory</a></li>
+            <li><a href="/doctor/profile" class="nav-link px-3 py-2"><i class="bi bi-person-circle me-2"></i> My Profile</a></li>
+        </ul>
+        <div class="mt-auto">
+            <hr class="text-white-50">
+            <a href="/login?logout=true" class="btn btn-outline-light w-100 rounded-pill fw-bold mt-2">
+                <i class="bi bi-box-arrow-right me-2"></i> Log Out
+            </a>
         </div>
     </div>
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-success text-white"><h5 class="mb-0">Medicines</h5></div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush mb-4"><li class="list-group-item" th:each="med : ${patient.currentMedications}" th:text="${med}"></li></ul>
-                    <form action="/doctor/add-medicine" method="post">
-                        <input type="hidden" name="patientId" th:value="${patient.id}">
-                        <div class="input-group"><input type="text" name="medicineName" class="form-control" placeholder="Medicine Name" required><button type="submit" class="btn btn-success">Add</button></div>
-                    </form>
+
+    <div class="flex-grow-1" style="margin-left: 280px;">
+        <div class="container py-4 px-4" style="max-width: 1100px;">
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="/doctor/docdashboard" class="btn btn-light rounded-pill shadow-sm border fw-semibold px-4 text-muted">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Roster
+                </a>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/doctor/edit-patient/{id}(id=${patient.id})}" class="btn btn-outline-primary rounded-pill px-4 fw-semibold">
+                        <i class="bi bi-pencil me-1"></i> Edit Details
+                    </a>
+                    <a th:href="@{/doctor/print-prescription/{id}(id=${patient.id})}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-file-earmark-medical me-1"></i> Write Prescription
+                    </a>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-info text-white"><h5 class="mb-0">Lab Tests</h5></div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush mb-4"><li class="list-group-item" th:each="test : ${patient.assignedTests}" th:text="${test}"></li></ul>
-                    <form action="/doctor/book-test" method="post">
-                        <input type="hidden" name="patientId" th:value="${patient.id}">
-                        <div class="input-group">
-                            <select name="testName" class="form-select" required><option value="Blood Test">Blood Test</option><option value="X-Ray">X-Ray</option><option value="MRI">MRI</option></select>
-                            <button type="submit" class="btn btn-info text-white">Book</button>
+
+            <div class="patient-banner p-4 mb-4 shadow-sm d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-4" style="width: 70px; height: 70px; font-size: 2rem;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-1 text-dark" th:text="${patient.fullName}">John Doe</h2>
+                        <div class="d-flex align-items-center text-muted gap-3">
+                            <span><i class="bi bi-upc-scan me-1"></i> <span th:text="${patient.patientId}">PAT-000</span></span>
+                            <span><i class="bi bi-telephone-fill me-1"></i> <span th:text="${patient.phone}">1234567890</span></span>
+                            <span><i class="bi bi-calendar-event me-1"></i> DOB: <span th:text="${patient.dateOfBirth != null ? patient.dateOfBirth : 'Unknown'}">Unknown</span></span>
                         </div>
-                    </form>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="d-block text-muted small fw-bold text-uppercase mb-1">Current Status</span>
+                    <span class="badge rounded-pill fs-5 px-4 py-2" 
+                          th:classappend="${patient.condition == 'Stable' ? 'bg-success text-white' : 
+                                        (patient.condition == 'Critical' ? 'bg-danger text-white' : 'bg-warning text-dark')}"
+                          th:text="${patient.condition}">Stable</span>
                 </div>
             </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card glass-card mb-4 p-4">
+                        <h5 class="section-header"><i class="bi bi-activity text-primary me-2"></i> Patient Vitals</h5>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="vital-card">
+                                    <i class="bi bi-droplet-fill text-danger fs-4 d-block mb-1"></i>
+                                    <span class="text-muted small text-uppercase fw-bold">Blood</span>
+                                    <h5 class="mb-0 fw-bold mt-1" th:text="${patient.bloodGroup != null && patient.bloodGroup != '' ? patient.bloodGroup : '--'}">O+</h5>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="vital-card">
+                                    <i class="bi bi-gender-ambiguous text-info fs-4 d-block mb-1"></i>
+                                    <span class="text-muted small text-uppercase fw-bold">Gender</span>
+                                    <h5 class="mb-0 fw-bold mt-1" th:text="${patient.gender != null && patient.gender != '' ? patient.gender : '--'}">M</h5>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="vital-card">
+                                    <i class="bi bi-rulers text-secondary fs-4 d-block mb-1"></i>
+                                    <span class="text-muted small text-uppercase fw-bold">Height</span>
+                                    <h5 class="mb-0 fw-bold mt-1"><span th:text="${patient.height != null ? patient.height : '--'}"></span><small class="text-muted fs-6"> cm</small></h5>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="vital-card">
+                                    <i class="bi bi-speedometer text-secondary fs-4 d-block mb-1"></i>
+                                    <span class="text-muted small text-uppercase fw-bold">Weight</span>
+                                    <h5 class="mb-0 fw-bold mt-1"><span th:text="${patient.weight != null ? patient.weight : '--'}"></span><small class="text-muted fs-6"> kg</small></h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-card p-4">
+                        <h5 class="section-header"><i class="bi bi-clipboard2-pulse text-primary me-2"></i> Medical History</h5>
+                        <div class="mb-3">
+                            <label class="text-muted small text-uppercase fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Allergies</label>
+                            <p class="mb-0 fw-semibold" th:text="${patient.allergies != null && patient.allergies != '' ? patient.allergies : 'No known allergies reported.'}"></p>
+                        </div>
+                        <div>
+                            <label class="text-muted small text-uppercase fw-bold mb-1"><i class="bi bi-heartbreak-fill text-danger me-1"></i> Chronic Diseases</label>
+                            <p class="mb-0 fw-semibold" th:text="${patient.chronicDiseases != null && patient.chronicDiseases != '' ? patient.chronicDiseases : 'None reported.'}"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card glass-card mb-4 p-4">
+                        <h5 class="section-header d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-capsule text-primary me-2"></i> Active Medications</span>
+                        </h5>
+                        
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item px-0 text-muted" th:if="${#lists.isEmpty(patient.currentMedications)}">
+                                No medications currently assigned.
+                            </li>
+                            <li class="list-group-item px-0 fw-semibold d-flex justify-content-between align-items-center" th:each="med : ${patient.currentMedications}">
+                                <span><i class="bi bi-check2-circle text-success me-2"></i> <span th:text="${med}"></span></span>
+                            </li>
+                        </ul>
+
+                        <form action="/doctor/add-medicine" method="POST" class="mt-2 bg-light p-3 rounded border">
+                            <input type="hidden" name="patientId" th:value="${patient.id}">
+                            <div class="input-group">
+                                <input type="text" class="form-control border-0 shadow-none" name="medicineName" placeholder="Type medicine name to prescribe..." required>
+                                <button class="btn btn-primary px-4 fw-bold" type="submit">Add Med</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card glass-card p-4">
+                        <h5 class="section-header d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-eyedropper text-primary me-2"></i> Prescribed Lab Tests</span>
+                        </h5>
+
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item px-0 text-muted" th:if="${#lists.isEmpty(patient.assignedTests)}">
+                                No lab tests currently recommended.
+                            </li>
+                            <li class="list-group-item px-0 fw-semibold d-flex justify-content-between align-items-center" th:each="test : ${patient.assignedTests}">
+                                <span><i class="bi bi-clipboard-check text-info me-2"></i> <span th:text="${test}"></span></span>
+                            </li>
+                        </ul>
+
+                        <form action="/doctor/book-test" method="POST" class="mt-2 bg-light p-3 rounded border">
+                            <input type="hidden" name="patientId" th:value="${patient.id}">
+                            <div class="input-group">
+                                <input type="text" class="form-control border-0 shadow-none" name="testName" placeholder="e.g. Complete Blood Count (CBC)..." required>
+                                <button class="btn btn-info text-white px-4 fw-bold" type="submit">Assign Test</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

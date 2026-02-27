@@ -10,4 +10,10 @@ public interface PrescriptionRepository extends MongoRepository<Prescription, St
     Optional<Prescription> findByPrescriptionId(String prescriptionId);
     List<Prescription> findByPatientId(String patientId);
     List<Prescription> findByDoctorId(String doctorId);
+
+    // Searches inside the medicineList text block for a specific medicine name (ignoring uppercase/lowercase)
+    List<Prescription> findByMedicineListContainingIgnoreCase(String medicineName);
+
+    // Searches inside the new medicineIds list for a specific MED-XXX tag
+    List<Prescription> findByMedicineIdsContaining(String medId);
 }

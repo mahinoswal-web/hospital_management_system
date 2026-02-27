@@ -12,6 +12,7 @@ public class Medicines {
     private String id;   // maps to _id in MongoDB
 
     private String medId;
+    private String doctorId; // Tells us which doctor owns this medicine
     private String name;
     private String companyName;
 
@@ -157,4 +158,7 @@ public class Medicines {
     public void setSpecialInstructions(String specialInstructions) {
         this.specialInstructions = specialInstructions;
     }
+
+    public String getDoctorId() { return doctorId; }
+    public void setDoctorId(String doctorId) { this.doctorId = doctorId; }
 }
