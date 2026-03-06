@@ -1,126 +1,174 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Doctors - Admin Portal</title>
+    <title>Doctor Dashboard - MediPortal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; overflow-x: hidden; }
-        #sidebar { min-height: 100vh; background-color: #212529; color: white; }
-        #sidebar .nav-link { color: #adb5bd; margin-bottom: 5px; border-radius: 5px; }
-        #sidebar .nav-link:hover, #sidebar .nav-link.active { background-color: #0d6efd; color: white; }
-        .top-navbar { background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        body {
+            background-color: #f8fafc;
+            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Doctor-Specific Blue Sidebar */
+        #sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+
+        #sidebar .nav-link {
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        #sidebar .nav-link:hover,
+        #sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            transform: translateX(5px);
+            border-left: 4px solid #60a5fa;
+        }
+
+        .glass-card {
+            background: white;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="d-flex">
-    <div class="d-flex flex-column p-3 text-white" id="sidebar" style="width: 280px;">
-        <a href="/admin/dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-            <i class="bi bi-hospital fs-4 me-2"></i><span class="fs-4 fw-bold">Clinic Admin</span>
-        </a>
-        <hr>
-        <ul class="nav nav-pills flex-column mb-auto">
-            <li><a href="/admin/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
-            <li><a href="/admin/doctors" class="nav-link active"><i class="bi bi-person-badge me-2"></i> Manage Doctors</a></li>
-            <li><a href="/admin/patients" class="nav-link"><i class="bi bi-people me-2"></i> Manage Patients</a></li>
-        </ul>
-        <hr>
-        <a href="/login?logout=true" class="nav-link text-danger fw-bold"><i class="bi bi-box-arrow-right me-2"></i> Log Out</a>
-    </div>
-
-    <div class="flex-grow-1">
-        <nav class="navbar top-navbar p-3 mb-4">
-            <div class="container-fluid d-flex justify-content-between">
-                <span class="navbar-brand mb-0 h1">Doctor Directory</span>
-            </div>
-        </nav>
-
-        <div class="container-fluid px-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="fw-bold text-dark">All Registered Doctors</h4>
-                <button class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add New Doctor</button>
-            </div>
-
-            <div class="card shadow-sm">
-                <div class="card-body p-0">
-                    <table class="table table-hover table-striped mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Doctor ID</th>
-                                <th>Name</th>
-                                <th>Specialization</th>
-                                <th>Phone</th>
-                                <th>Fee</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="doctorsTableBody">
-                            <tr>
-                                <td colspan="6" class="text-center py-4">Loading doctors data...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+    <div class="d-flex">
+        <div class="d-flex flex-column p-4 text-white" id="sidebar" style="width: 280px; position: fixed; height: 100vh;">
+            <a href="/doctor/docdashboard" class="d-flex align-items-center mb-4 text-white text-decoration-none">
+                <div class="bg-white rounded p-2 me-3 shadow-sm text-primary">
+                    <i class="bi bi-heart-pulse-fill fs-4"></i>
                 </div>
+                <span class="fs-4 fw-bold">Physician Hub</span>
+            </a>
+            <hr class="text-white-50 opacity-25">
+            <ul class="nav nav-pills flex-column mb-auto mt-2">
+                <li>
+                    <a href="/doctor/docdashboard" class="nav-link active px-3 py-2">
+                        <i class="bi bi-house-door me-2"></i> My Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="/doctor/mypatients" class="nav-link px-3 py-2">
+                        <i class="bi bi-people me-2"></i> My Patients
+                    </a>
+                </li>
+                <li>
+                    <a href="/doctor/appointments" class="nav-link px-3 py-2">
+                        <i class="bi bi-calendar-check me-2"></i> Appointments
+                    </a>
+                </li>
+            </ul>
+            <div class="mt-auto">
+                <hr class="text-white-50 opacity-25">
+                <a href="/login?logout=true" class="btn btn-outline-light w-100 rounded-pill fw-bold mt-2 border-0 bg-white bg-opacity-10 shadow-none">
+                    <i class="bi bi-box-arrow-right me-2"></i> Log Out
+                </a>
             </div>
         </div>
-    </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Fetch Doctors from the REST API on load
-    document.addEventListener("DOMContentLoaded", function() {
-        fetch('/api/doctors')
-            .then(response => response.json())
-            .then(data => {
-                const tbody = document.getElementById('doctorsTableBody');
-                tbody.innerHTML = ''; // Clear loading text
+        <div class="flex-grow-1 p-5" style="margin-left: 280px;">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h2 class="fw-bold text-dark mb-0">Welcome to your Portal</h2>
+                    <p class="text-muted mt-1 mb-0 fs-5">Here is your daily overview.</p>
+                </div>
+                <div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill fs-6">
+                        <i class="bi bi-calendar-event me-1"></i> Today's Schedule
+                    </span>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card glass-card h-100 p-3 border-top border-primary border-4">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase fw-bold text-muted mb-2">Total Patients</h6>
+                                <h2 class="fw-bold mb-0 text-dark">0</h2>
+                            </div>
+                            <div class="metric-icon">
+                                <i class="bi bi-person-lines-fill fs-3"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                if(data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center">No doctors found.</td></tr>';
-                    return;
-                }
+                <div class="col-md-4">
+                    <div class="card glass-card h-100 p-3 border-top border-success border-4">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase fw-bold text-muted mb-2">Appointments Today</h6>
+                                <h2 class="fw-bold mb-0 text-dark">0</h2>
+                            </div>
+                            <div class="metric-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-clock-history fs-3"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                data.forEach(doc => {
-                    // Note: matching the fields from your DoctorController update method
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="align-middle fw-bold text-primary">${doc.doctorId || 'N/A'}</td>
-                        <td class="align-middle">${doc.name || 'N/A'}</td>
-                        <td class="align-middle">${doc.specialization || 'N/A'}</td>
-                        <td class="align-middle">${doc.phone || 'N/A'}</td>
-                        <td class="align-middle">₹${doc.consultationFee || '0'}</td>
-                        <td class="text-center align-middle">
-                            <button class="btn btn-sm btn-outline-info me-1" onclick="alert('View details logic here')">View</button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteDoctor('${doc.doctorId}')">Delete</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching doctors:', error);
-                document.getElementById('doctorsTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading data.</td></tr>';
-            });
-    });
+            <div class="card glass-card">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-clipboard2-pulse text-primary me-2"></i> Recent Patients</h5>
+                    <button class="btn btn-sm btn-light rounded-pill text-primary fw-bold">View All</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 border-top">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4 text-muted small text-uppercase">Patient Name</th>
+                                    <th class="text-muted small text-uppercase">Last Visit</th>
+                                    <th class="text-muted small text-uppercase">Status</th>
+                                    <th class="text-center text-muted small text-uppercase">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ps-4 fw-bold text-dark">No recent patients to display.</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-    // Placeholder for Delete Function mapping to your @DeleteMapping API
-    function deleteDoctor(doctorId) {
-        if(confirm(`Are you sure you want to delete doctor ${doctorId}?`)) {
-            fetch(`/api/doctors/${doctorId}`, { method: 'DELETE' })
-                .then(response => {
-                    if(response.ok) {
-                        alert("Doctor deleted successfully.");
-                        location.reload(); // Refresh the table
-                    } else {
-                        alert("Failed to delete doctor.");
-                    }
-                });
-        }
-    }
-</script>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

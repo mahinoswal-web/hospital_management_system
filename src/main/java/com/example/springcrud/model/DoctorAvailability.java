@@ -18,7 +18,6 @@ public class DoctorAvailability {
     private Boolean available;
 
     // ---------- CONSTRUCTORS ----------
-
     public DoctorAvailability() {
     }
 

@@ -22,4 +22,9 @@ public class DoctorMedicineController {
     public List<DoctorMedicine> getDocMedicines(@PathVariable String doctorId) {
         return doctorMedicineRepository.findByDoctorId(doctorId);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public void deleteMedicine(@PathVariable String id) {
+        doctorMedicineRepository.deleteById(id);
+    }
 }

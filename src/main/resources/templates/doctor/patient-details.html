@@ -64,10 +64,10 @@
                     <i class="bi bi-arrow-left me-2"></i> Back to Roster
                 </a>
                 <div class="d-flex gap-2">
-                    <a th:href="@{/doctor/edit-patient/{id}(id=${patient.id})}" class="btn btn-outline-primary rounded-pill px-4 fw-semibold">
+                    <a th:href="@{/doctor/edit-patient/{id}(id=${patient.patientId})}" class="btn btn-outline-primary rounded-pill px-4 fw-semibold">
                         <i class="bi bi-pencil me-1"></i> Edit Details
                     </a>
-                    <a th:href="@{/doctor/print-prescription/{id}(id=${patient.id})}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                    <a th:href="@{/doctor/print-prescription/{id}(id=${patient.patientId})}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
                         <i class="bi bi-file-earmark-medical me-1"></i> Write Prescription
                     </a>
                 </div>
@@ -160,12 +160,18 @@
                             </li>
                         </ul>
 
-                        <form action="/doctor/add-medicine" method="POST" class="mt-2 bg-light p-3 rounded border">
-                            <input type="hidden" name="patientId" th:value="${patient.id}">
-                            <div class="input-group">
-                                <input type="text" class="form-control border-0 shadow-none" name="medicineName" placeholder="Type medicine name to prescribe..." required>
-                                <button class="btn btn-primary px-4 fw-bold" type="submit">Add Med</button>
-                            </div>
+                        <form th:action="@{/doctor/add-medicine}" method="POST" class="d-flex">
+                            <input type="hidden" name="patientId" th:value="${patient.id}" />
+                            <select name="medicineName" class="form-select me-2" required>
+                                <option value="" disabled selected>Select a medicine from your inventory...</option>
+                                <option th:each="med : ${inventory}" 
+                                        th:value="${med.medicineName}" 
+                                        th:text="${med.medicineName}">
+                                </option>
+                            </select>
+                            <button type="submit" class="btn btn-primary text-nowrap">
+                                <i class="bi bi-plus-circle me-1"></i> Add Med
+                            </button>
                         </form>
                     </div>
 
@@ -175,18 +181,81 @@
                         </h5>
 
                         <ul class="list-group list-group-flush mb-3">
-                            <li class="list-group-item px-0 text-muted" th:if="${#lists.isEmpty(patient.assignedTests)}">
+                            <li class="list-group-item px-0 text-muted" th:if="${#lists.isEmpty(testRecords)}">
                                 No lab tests currently recommended.
                             </li>
-                            <li class="list-group-item px-0 fw-semibold d-flex justify-content-between align-items-center" th:each="test : ${patient.assignedTests}">
-                                <span><i class="bi bi-clipboard-check text-info me-2"></i> <span th:text="${test}"></span></span>
-                            </li>
+                            
+                            <li class="list-group-item px-0 py-3" th:each="record : ${testRecords}">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <i class="bi bi-clipboard-pulse text-info me-2"></i> 
+                                        <span class="fw-bold text-dark" th:text="${record.testName}"></span>
+                                        <small class="text-muted ms-2 d-block" style="font-size: 0.8rem; padding-left: 24px;">
+                                            Ordered: <span th:text="${record.prescribedDate}"></span>
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge rounded-pill" 
+                                              th:classappend="${record.status == 'Completed' ? 'bg-success' : 'bg-warning text-dark'}"
+                                              th:text="${record.status}">
+                                        </span>
+                                        
+                                        <button th:if="${record.status == 'Pending'}" 
+                                                class="btn btn-sm btn-outline-primary rounded-pill fw-bold"
+                                                data-bs-toggle="modal" 
+                                                th:data-bs-target="'#resultModal-' + ${record.id}">
+                                            Enter Results
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div th:if="${record.status == 'Completed'}" class="bg-light p-3 rounded border border-success border-opacity-25 mt-2 ms-4">
+                                    <small class="text-success fw-bold text-uppercase d-block mb-1"><i class="bi bi-check2-all me-1"></i> Medical Findings (Published <span th:text="${record.completedDate}"></span>)</small>
+                                    <span class="text-dark" th:text="${record.resultDetails}"></span>
+                                </div>
+
+                                <div class="modal fade" th:id="'resultModal-' + ${record.id}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg">
+                                            <div class="modal-header bg-primary text-white">
+                                                <h5 class="modal-title"><i class="bi bi-clipboard2-pulse me-2"></i> Publish Lab Results</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="/doctor/publish-test-result" method="POST">
+                                                <div class="modal-body p-4">
+                                                    <input type="hidden" name="recordId" th:value="${record.id}">
+                                                    <input type="hidden" name="patientId" th:value="${patient.id}">
+                                                    
+                                                    <p class="text-muted small mb-2">Publishing results for:</p>
+                                                    <h6 class="fw-bold text-dark mb-4" th:text="${record.testName}"></h6>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">Medical Findings & Notes</label>
+                                                        <textarea name="resultDetails" class="form-control bg-light" rows="4" placeholder="Enter specific diagnostic findings here..." required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer bg-light">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-success fw-bold"><i class="bi bi-check-circle me-1"></i> Save & Publish</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                </li>
                         </ul>
 
-                        <form action="/doctor/book-test" method="POST" class="mt-2 bg-light p-3 rounded border">
+                        <form action="/doctor/book-test" method="POST" class="mt-3 bg-light p-3 rounded border">
                             <input type="hidden" name="patientId" th:value="${patient.id}">
                             <div class="input-group">
-                                <input type="text" class="form-control border-0 shadow-none" name="testName" placeholder="e.g. Complete Blood Count (CBC)..." required>
+                                <select name="testName" class="form-select border-0 shadow-none" required>
+                                    <option value="" disabled selected>Select an available lab test...</option>
+                                    <option th:each="test : ${hospitalTests}" 
+                                            th:value="${test.testName}" 
+                                            th:text="${test.testName}">
+                                    </option>
+                                </select>
                                 <button class="btn btn-info text-white px-4 fw-bold" type="submit">Assign Test</button>
                             </div>
                         </form>

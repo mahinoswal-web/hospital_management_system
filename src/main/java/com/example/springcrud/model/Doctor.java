@@ -21,7 +21,7 @@ public class Doctor {
 
     // CHANGED: Using Wrapper classes (Integer, Double) so they can be null checked
     private Integer experience;       
-    private List<String> qualification;
+    private String qualification;
     private String gender;
     private Double consultationFee;   
     private Double rating;            
@@ -71,8 +71,8 @@ public class Doctor {
     public Integer getExperience() { return experience; }
     public void setExperience(Integer experience) { this.experience = experience; }
 
-    public List<String> getQualification() { return qualification; }
-    public void setQualification(List<String> qualification) { this.qualification = qualification; }
+    public String getQualification() { return qualification; }
+public void setQualification(String qualification) { this.qualification = qualification; }
 
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }

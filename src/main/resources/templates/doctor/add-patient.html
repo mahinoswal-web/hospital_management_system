@@ -115,21 +115,28 @@
 
                     <h5 class="form-section-title"><i class="bi bi-telephone me-2"></i> Contact Details</h5>
                     <div class="row g-4 mb-4">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold text-muted small text-uppercase">Phone Number *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-0"><i class="bi bi-telephone-fill text-muted"></i></span>
                                 <input type="tel" class="form-control form-control-lg bg-light border-0" name="phone" th:value="${patient.phone}" required placeholder="10-digit number">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">Portal Password *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-key-fill text-muted"></i></span>
+                                <input type="text" class="form-control form-control-lg bg-light border-0" name="password" th:value="${patient.password}" required placeholder="Temporary Password">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold text-muted small text-uppercase">Email Address</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-0"><i class="bi bi-envelope-fill text-muted"></i></span>
                                 <input type="email" class="form-control form-control-lg bg-light border-0" name="emailAddress" th:value="${patient.emailAddress}" placeholder="name@example.com">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold text-muted small text-uppercase">Emergency Contact</label>
                             <input type="text" class="form-control form-control-lg bg-light border-0" name="emergencyContact" th:value="${patient.emergencyContact}" placeholder="Name & Phone">
                         </div>

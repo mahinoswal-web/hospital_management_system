@@ -16,7 +16,7 @@ public class Prescription {
     private String patientId; // Links to the Patient
     private String doctorId;  // Links to the Doctor who wrote it
     private String doctorName; 
-    
+    private String doctorSpecialization; 
     private String diagnosis; // The doctor's notes
     private String medicineList; // Stores text for the printed pad
     
@@ -47,8 +47,12 @@ public class Prescription {
     public String getDoctorId() { return doctorId; }
     public void setDoctorId(String doctorId) { this.doctorId = doctorId; }
 
+    public String getDoctorSpecialization() { return doctorSpecialization; }
+    public void setDoctorSpecialization(String doctorSpecialization) { this.doctorSpecialization = doctorSpecialization; }
+
     public String getDoctorName() { return doctorName; }
     public void setDoctorName(String doctorName) { this.doctorName = doctorName; }
+
 
     public String getDiagnosis() { return diagnosis; }
     public void setDiagnosis(String diagnosis) { this.diagnosis = diagnosis; }

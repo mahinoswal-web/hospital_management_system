@@ -27,6 +27,9 @@ public class AuthController {
     @Autowired private AdminRepository adminRepository;
     @Autowired private DoctorRepository doctorRepository;
     @Autowired private PatientRepository patientRepository;
+    
+    // MOVED THIS INSIDE THE CLASS WHERE IT BELONGS
+    @Autowired private org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
@@ -58,6 +61,14 @@ public class AuthController {
 
             // 2. DOCTOR LOGIN
             else if ("DOCTOR".equalsIgnoreCase(role)) {
+                System.out.println("\n=== 🕵️‍♂️ ULTIMATE DATABASE CHECK ===");
+                // THIS IS THE MAGIC LINE:
+                System.out.println("Spring Boot is connected to Database: [" + mongoTemplate.getDb().getName() + "]");
+                long count = doctorRepository.count();
+                System.out.println("Total doctors Spring Boot can see: " + count);
+                System.out.println("====================================\n");
+
+                // RESTORED THE ACTUAL LOGIN CHECK LOGIC
                 Optional<Doctor> docOpt = doctorRepository.findByPhone(phone);
                 if (docOpt.isPresent()) {
                     Doctor doc = docOpt.get();

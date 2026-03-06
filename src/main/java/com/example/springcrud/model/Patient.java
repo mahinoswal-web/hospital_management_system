@@ -37,8 +37,7 @@ public class Patient {
 
     private Integer height;
     private Integer weight;
-    private String doctorId; 
-
+    private List<String> doctorIds = new ArrayList<>();
     // ---------- CONSTRUCTORS ----------
     public Patient() {
         // Empty constructor
@@ -59,12 +58,22 @@ public class Patient {
         this.assignedTests.add(test);
     }
 
+    // NEW: Helper method to safely add a new doctor to the list
+    public void addDoctorId(String doctorId) {
+        if (this.doctorIds == null) {
+            this.doctorIds = new ArrayList<>();
+        }
+        if (!this.doctorIds.contains(doctorId)) { // Prevent duplicates
+            this.doctorIds.add(doctorId);
+        }
+    }
+
     // ---------- GETTERS & SETTERS ----------
     public List<String> getAssignedTests() { return assignedTests; }
     public void setAssignedTests(List<String> assignedTests) { this.assignedTests = assignedTests; }
 
-    public String getDoctorId() { return doctorId; }
-    public void setDoctorId(String doctorId) { this.doctorId = doctorId; }
+    public List<String> getDoctorIds() { return doctorIds; }
+    public void setDoctorIds(List<String> doctorIds) { this.doctorIds = doctorIds; }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }

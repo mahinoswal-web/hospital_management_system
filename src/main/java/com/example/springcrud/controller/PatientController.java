@@ -66,7 +66,8 @@ public class PatientController {
     // ================= READ BY DOCTOR ID =================
     @GetMapping("/byDoctor/{doctorId}")
     public ResponseEntity<List<Patient>> getPatientsByDoctorId(@PathVariable String doctorId) {
-        List<Patient> patients = patientRepository.findByDoctorId(doctorId);
+        // UPDATED: Uses the new repository method name
+        List<Patient> patients = patientRepository.findByDoctorIdsContaining(doctorId);
         if (patients.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT); 
         }
@@ -94,8 +95,10 @@ public class PatientController {
             patientToUpdate.setCurrentMedications(patient.getCurrentMedications());
             patientToUpdate.setHeight(patient.getHeight());
             patientToUpdate.setWeight(patient.getWeight());
-            patientToUpdate.setDoctorId(patient.getDoctorId());
             patientToUpdate.setCondition(patient.getCondition());
+            
+            // UPDATED: Setting the List instead of the Single String
+            patientToUpdate.setDoctorIds(patient.getDoctorIds());
 
             Patient updatedPatient = patientRepository.save(patientToUpdate);
             return new ResponseEntity<>(updatedPatient, HttpStatus.OK);

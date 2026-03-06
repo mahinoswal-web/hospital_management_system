@@ -85,16 +85,24 @@
                     return;
                 }
 
-                data.forEach(pat => {
-                    // Note: matching the fields from your PatientController update method
+                ddata.forEach(pat => {
+                    // *** THE FIX: Format the doctorIds array safely ***
+                    const doctorsDisplay = (pat.doctorIds && pat.doctorIds.length > 0) 
+                                           ? pat.doctorIds.join(', ') 
+                                           : 'Unassigned';
+
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td class="align-middle fw-bold text-success">${pat.patientId || 'N/A'}</td>
                         <td class="align-middle">${pat.fullName || 'N/A'}</td>
                         <td class="align-middle">${pat.gender || 'N/A'}</td>
                         <td class="align-middle">${pat.bloodGroup || '-'}</td>
-                        <td class="align-middle">${pat.doctorId || 'Unassigned'}</td>
-                        <td class="align-middle">${pat.condition || 'N/A'}</td>
+                        <td class="align-middle fw-bold text-primary">${doctorsDisplay}</td>
+                        <td class="align-middle">
+                            <span class="badge ${pat.condition === 'Critical' ? 'bg-danger' : 'bg-success'}">
+                                ${pat.condition || 'N/A'}
+                            </span>
+                        </td>
                         <td class="text-center align-middle">
                             <button class="btn btn-sm btn-outline-info me-1" onclick="alert('View details logic here')">View</button>
                             <button class="btn btn-sm btn-outline-danger" onclick="deletePatient('${pat.patientId}')">Delete</button>
