@@ -18,12 +18,27 @@
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white; 
             box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
         }
         #sidebar .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 8px; border-radius: 10px; transition: all 0.3s ease; }
         #sidebar .nav-link:hover, #sidebar .nav-link.active { background-color: rgba(255,255,255,0.2); color: white; transform: translateX(5px); }
 
         .top-navbar { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .glass-card { background: #ffffff; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+
+        .fade-in {
+          animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
     </style>
 </head>
 <body>
@@ -31,18 +46,35 @@
 <input type="hidden" id="hiddenDoctorId" th:value="${displayId}">
 
 <div class="d-flex">
-    <div class="d-flex flex-column p-4" id="sidebar" style="width: 280px; position: fixed; height: 100vh; z-index: 1000;">
+    <div class="d-flex flex-column p-4" id="sidebar" style="width: 280px;">
         <a href="/doctor/docdashboard" class="d-flex align-items-center mb-4 text-white text-decoration-none">
             <div class="bg-white text-primary rounded-circle p-2 me-3 shadow-sm">
-                <i class="bi bi-heart-pulse-fill fs-3"></i>
+                <img src="https://img.icons8.com/color/48/000000/doctor-male.png" alt="Doctor Logo" width="48" height="48"/>
             </div>
             <span class="fs-4 fw-bold">MediPortal</span>
         </a>
         <hr class="text-white-50">
-        <ul class="nav nav-pills flex-column mb-auto mt-2">
-            <li><a href="/doctor/docdashboard" class="nav-link px-3 py-2"><i class="bi bi-grid-1x2-fill me-2"></i> Dashboard</a></li>
-            <li><a href="/doctor/inventory" class="nav-link active px-3 py-2"><i class="bi bi-capsule me-2"></i> My Inventory</a></li>
-            <li><a href="/doctor/profile" class="nav-link px-3 py-2"><i class="bi bi-person-circle me-2"></i> My Profile</a></li>
+       <ul class="nav nav-pills flex-column mb-auto mt-2">
+            <li>
+                <a href="/doctor/docdashboard" class="nav-link px-3 py-2">
+                    <i class="bi bi-grid-1x2-fill me-2"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/doctor/mypatients" class="nav-link px-3 py-2">
+                    <i class="bi bi-people-fill me-2"></i> My Patients
+                </a>
+            </li>
+            <li>
+                <a href="/doctor/inventory" class="nav-link active px-3 py-2">
+                    <i class="bi bi-capsule me-2"></i> Medicine Inventory
+                </a>
+            </li>
+            <li>
+                <a href="/doctor/profile" class="nav-link px-3 py-2">
+                    <i class="bi bi-person-circle me-2"></i> My Profile
+                </a>
+            </li>
         </ul>
         <div class="mt-auto">
             <hr class="text-white-50">
@@ -52,7 +84,7 @@
         </div>
     </div>
 
-    <div class="flex-grow-1" style="margin-left: 280px;">
+    <div class="flex-grow-1 fade-in" style="margin-left: 280px;">
         
         <nav class="navbar top-navbar py-3 px-4 mb-4 sticky-top">
             <div class="container-fluid d-flex justify-content-between align-items-center">

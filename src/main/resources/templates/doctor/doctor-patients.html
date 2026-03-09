@@ -8,32 +8,52 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background-color: #f0f4f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
-        
+
         /* Premium Gradient Sidebar */
-        #sidebar { min-height: 100vh; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
+        #sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+        }
         #sidebar .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 8px; border-radius: 10px; transition: all 0.3s ease; }
         #sidebar .nav-link:hover, #sidebar .nav-link.active { background-color: rgba(255,255,255,0.2); color: white; transform: translateX(5px); }
 
         .top-navbar { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        
+
         .glass-card { background: #ffffff; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
-        .table-hover tbody tr { transition: background-color 0.2s; }
+        .table-hover tbody tr { transition: background-color: 0.2s; }
         .table-hover tbody tr:hover { background-color: #f8faff; }
         .table thead { background-color: #f8f9fa; color: #495057; }
+
+        .fade-in {
+          animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
     </style>
 </head>
 <body>
 
-<div class="d-flex">
-    <div class="d-flex flex-column p-4" id="sidebar" style="width: 280px; position: fixed; height: 100vh;">
+<div class.d-flex>
+    <div class="d-flex flex-column p-4" id="sidebar" style="width: 280px;">
         <a href="/doctor/docdashboard" class="d-flex align-items-center mb-4 text-white text-decoration-none">
             <div class="bg-white text-primary rounded-circle p-2 me-3 shadow-sm">
-                <i class="bi bi-heart-pulse-fill fs-3"></i>
+                <img src="https://img.icons8.com/color/48/000000/doctor-male.png" alt="Doctor Logo" width="48" height="48"/>
             </div>
             <span class="fs-4 fw-bold">MediPortal</span>
         </a>
         <hr class="text-white-50">
-        <ul class="nav nav-pills flex-column mb-auto mt-2">
+       <ul class="nav nav-pills flex-column mb-auto mt-2">
             <li>
                 <a href="/doctor/docdashboard" class="nav-link px-3 py-2">
                     <i class="bi bi-grid-1x2-fill me-2"></i> Dashboard
@@ -63,8 +83,8 @@
         </div>
     </div>
 
-    <div class="flex-grow-1" style="margin-left: 280px;">
-        
+    <div class="flex-grow-1 fade-in" style="margin-left: 280px;">
+
         <nav class="navbar top-navbar py-3 px-4 mb-4 sticky-top">
             <div class="container-fluid d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold text-dark">Patient Directory</h5>
@@ -91,7 +111,7 @@
                     </div>
                 </div>
                 <div class="card-body px-4 pb-4">
-                    
+
                     <form action="/doctor/mypatients" method="GET" class="mb-4">
                         <div class="input-group shadow-sm rounded-pill overflow-hidden border">
                             <span class="input-group-text bg-white border-0 ps-4 text-muted"><i class="bi bi-search"></i></span>
@@ -122,16 +142,16 @@
                                         <p>You don't have any patients matching this criteria.</p>
                                     </td>
                                 </tr>
-                                
+
                                 <tr th:each="patient : ${patients}">
                                     <td class="ps-3 fw-bold text-primary">
                                         <div class="bg-primary bg-opacity-10 text-primary rounded px-2 py-1 small d-inline-block" th:text="${patient.patientId}">PAT-000</div>
                                     </td>
                                     <td class="fw-semibold text-dark" th:text="${patient.fullName}">John Doe</td>
                                     <td>
-                                        <span class="badge rounded-pill px-3 py-2" 
-                                              th:classappend="${patient.condition == 'Stable' ? 'bg-success bg-opacity-10 text-success' : 
-                                                            (patient.condition == 'Critical' ? 'bg-danger bg-opacity-10 text-danger' : 
+                                        <span class="badge rounded-pill px-3 py-2"
+                                              th:classappend="${patient.condition == 'Stable' ? 'bg-success bg-opacity-10 text-success' :
+                                                            (patient.condition == 'Critical' ? 'bg-danger bg-opacity-10 text-danger' :
                                                             'bg-warning bg-opacity-10 text-warning')}"
                                               th:text="${patient.condition}">Stable</span>
                                     </td>
